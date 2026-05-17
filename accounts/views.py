@@ -2,7 +2,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import RegisterSerializer
+# We import RegisterSerializer to handle signups and LoginSerializer to handle credentials checking
+from .serializers import RegisterSerializer, LoginSerializer
 
 
 # RegisterAPIView handles incoming HTTP POST requests to sign up new users.
@@ -58,3 +59,45 @@ class RegisterAPIView(APIView):
         # We return the response dictionary with an HTTP 201 Created status.
         # This tells the client: "Success! Your account is created, and you are logged in!"
         return Response(response_data, status=status.HTTP_201_CREATED)
+
+
+# LoginAPIView handles incoming HTTP POST requests to verify credentials and log in.
+# It inherits from DRF's APIView.
+# Think of APIView as a specialized security office desk configured to handle custom actions.
+class LoginAPIView(APIView):
+    
+    # We define the POST method to receive and process user credentials.
+    def post(self, request):
+        # We instantiate our LoginSerializer with the incoming request details.
+        # This sends email and password straight to our data validator (the customs officer).
+        serializer = LoginSerializer(data=request.data)
+        
+        # We run our bouncer and validation steps!
+        # If credentials fail (e.g. wrong password), .is_valid() catches the ValidationError,
+        # stops execution immediately, and returns an HTTP 400 Bad Request to the user.
+        serializer.is_valid(raise_exception=True)
+        
+        # Once validated, we retrieve our verified 'user' instance from the serializer's parsed data attributes.
+        # Remember, our LoginSerializer validator securely stashed the User object inside attrs['user']!
+        user = serializer.validated_data['user']
+        
+        # We print a brand-new master security pass (Refresh Token) for this returning user.
+        # 'RefreshToken.for_user(user)' automatically issues access and refresh keycards.
+        refresh = RefreshToken.for_user(user)
+        
+        # We compile a success dictionary containing the user's details and fresh keycards.
+        response_data = {
+            'user': {
+                'id': user.id,
+                'email': user.email,
+                'username': user.username,
+            },
+            # Access Token represents the visitor badge
+            'access': str(refresh.access_token),
+            # Refresh Token represents the master pass
+            'refresh': str(refresh),
+        }
+        
+        # We return the response payload with an HTTP 200 OK status to let the client know
+        # they have successfully logged in!
+        return Response(response_data, status=status.HTTP_200_OK)
