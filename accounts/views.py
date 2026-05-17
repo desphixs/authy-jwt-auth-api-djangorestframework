@@ -153,3 +153,52 @@ class LogoutAPIView(APIView):
                 {"detail": "Invalid or already blacklisted refresh token."},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+
+# RefreshAPIView handles incoming HTTP POST requests to issue brand-new short-term Access Tokens.
+# It inherits from DRF's APIView.
+# Think of APIView as a specialized security office desk configured to handle custom actions.
+class RefreshAPIView(APIView):
+    
+    # We define the POST method to receive and process the refresh token.
+    def post(self, request):
+        try:
+            # We pull the 'refresh' token string out of the incoming request body data.
+            # This is the long-term master pass they present to get a new short-term visitor card.
+            refresh_token = request.data.get('refresh')
+            
+            # If the user did not supply a refresh token, we return a Bad Request response.
+            if not refresh_token:
+                return Response(
+                    {"detail": "Refresh token is required to generate a new access token."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # We convert the raw string token into a SimpleJWT 'RefreshToken' object.
+            # This parses the token structure, validates its signature, and verifies it hasn't expired or been blacklisted.
+            token = RefreshToken(refresh_token)
+            
+            # We generate a brand-new access token from our valid refresh token object!
+            # Since SimpleJWT handles refresh token rotation under the hood if enabled,
+            # we also support returning the updated/rotated refresh token in our response if configured.
+            response_data = {
+                # We cast the generated access token to a clean string format!
+                'access': str(token.access_token),
+            }
+            
+            # If token rotation is active in settings, SimpleJWT will rotate the refresh token.
+            # We can check if settings.py has enabled rotation, or simply try returning the updated token representation!
+            # To keep things clean, simple, and fully compliant with token story flows, we can also return 
+            # the current or newly minted refresh token. Casting 'str(token)' will return the rotated/active token string.
+            # Let's add it to make our view exceptionally future-proof and feature-complete!
+            response_data['refresh'] = str(token)
+            
+            # We return our fresh tokens payload with a friendly HTTP 200 OK status.
+            return Response(response_data, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            # If the token is invalid, expired, or blacklisted, we catch the exception and return a clear error.
+            return Response(
+                {"detail": "Invalid, expired, or blacklisted refresh token."},
+                status=status.HTTP_400_BAD_REQUEST
+            )

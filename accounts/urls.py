@@ -1,6 +1,6 @@
 from django.urls import path
-# We import our RegisterAPIView, LoginAPIView, and LogoutAPIView classes from our views module
-from .views import RegisterAPIView, LoginAPIView, LogoutAPIView
+# We import our RegisterAPIView, LoginAPIView, LogoutAPIView, and RefreshAPIView classes from our views module
+from .views import RegisterAPIView, LoginAPIView, LogoutAPIView, RefreshAPIView
 
 # urlpatterns defines a list of URL patterns that this specific application handles.
 # Think of urlpatterns like a local department directory that maps a visitor's request 
@@ -17,4 +17,7 @@ urlpatterns = [
     
     # We map 'logout/' to LogoutAPIView using the as_view() helper to unpack the class logic.
     path('logout/', LogoutAPIView.as_view(), name='logout'),
+    
+    # We map 'refresh/' to RefreshAPIView using the as_view() helper to unpack the class logic.
+    path('refresh/', RefreshAPIView.as_view(), name='token_refresh'),
 ]
