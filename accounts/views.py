@@ -202,3 +202,31 @@ class RefreshAPIView(APIView):
                 {"detail": "Invalid, expired, or blacklisted refresh token."},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+
+# MeAPIView handles incoming HTTP GET requests to fetch the authenticated user's profile details.
+# It inherits from DRF's APIView.
+# Think of APIView as a specialized security office desk configured to handle custom actions.
+class MeAPIView(APIView):
+    # We require the user to be fully authenticated to access this dashboard profile info!
+    # 'permission_classes = [IsAuthenticated]' acts like a security guard standing in front 
+    # of the desk: if a visitor does not have a valid, active Access Token in their request header,
+    # the guard blocks them immediately with an HTTP 401 Unauthorized warning.
+    permission_classes = [IsAuthenticated]
+
+    # We define the GET method to retrieve the authenticated user's data.
+    def get(self, request):
+        # When a user passes their access token bouncer check, Django REST Framework automatically
+        # locates their User record in SQLite and attaches it directly to the 'request' object
+        # under the 'user' attribute! We can access it as 'request.user'.
+        user = request.user
+
+        # We construct a secure success dictionary containing the logged-in user's details.
+        user_info = {
+            "id": user.id,
+            "email": user.email,
+            "username": user.username,
+        }
+
+        # We return the user profile dictionary with an HTTP 200 OK status code!
+        return Response(user_info, status=status.HTTP_200_OK)
