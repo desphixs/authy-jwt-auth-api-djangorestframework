@@ -48,6 +48,13 @@ INSTALLED_APPS = [
     # Think of it as a specialized department in a business office that handles employee records,
     # badges, and security clearance.
     'accounts',
+    
+    # 'rest_framework_simplejwt.token_blacklist' is our security revocation registry.
+    # Think of it like a "revoked keycards list" at a high-security facility.
+    # When a user logs out, their token is thrown into this blacklist database table
+    # so that even if a hacker finds and steals that token later, our security system
+    # will check the blacklist, recognize it, and block them from entering!
+    'rest_framework_simplejwt.token_blacklist',
 ]
 
 MIDDLEWARE = [
@@ -136,4 +143,49 @@ STATIC_URL = 'static/'
 # The AUTH_USER_MODEL setting tells Django: "Hey, do not build the generic user cabinet! 
 # Instead, use the custom 'User' blueprint we designed inside our 'accounts' app."
 AUTH_USER_MODEL = 'accounts.User'
+
+
+# Django REST Framework Configuration
+# This dictionary contains all overall settings for our API toolkit.
+REST_FRAMEWORK = {
+    # 'DEFAULT_AUTHENTICATION_CLASSES' is the global checklist of how DRF verifies who a caller is.
+    # Think of it like a security gate that requires a specific type of passport.
+    # By adding 'rest_framework_simplejwt.authentication.JWTAuthentication', we instruct our API 
+    # that any request hitting a protected page must present a valid JSON Web Token (JWT).
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+
+# SimpleJWT Configuration
+# This dictionary defines how our JSON Web Token (JWT) passes are issued and validated.
+# We set clear expiration boundaries so we can securely test token lifetime and rotation behavior.
+from datetime import timedelta
+SIMPLE_JWT = {
+    # 'ACCESS_TOKEN_LIFETIME' is how long an access pass stays active.
+    # Think of it like a visitor badge at a tech office that expires after 15 minutes.
+    # Once it expires, the user must present their refresh token to get a brand new badge.
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
+    
+    # 'REFRESH_TOKEN_LIFETIME' is the life of the master pass.
+    # Think of it like a membership card that lasts for 1 day.
+    # It cannot be used to read database rooms directly, but it can be swapped for a fresh access badge
+    # so users don't have to keep re-typing their password every 15 minutes!
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    
+    # 'ROTATE_REFRESH_TOKENS' controls whether to issue a brand new refresh token
+    # every time a user requests a new access token. We set this to False for simple behavior,
+    # or True if we want maximum rotating security! Let's keep it False for initial simplicity.
+    'ROTATE_REFRESH_TOKENS': False,
+    
+    # 'BLACKLIST_AFTER_ROTATION' ensures that once a refresh token is swapped or rotated,
+    # the old refresh token is immediately blacklisted and cannot be reused.
+    'BLACKLIST_AFTER_ROTATION': True,
+    
+    # 'AUTH_HEADER_TYPES' defines the prefix word required in our API request header.
+    # For example: 'Authorization: Bearer <your-access-token>'
+    # 'Bearer' is the standard web convention—it literally means "the bearer of this token has access".
+    'AUTH_HEADER_TYPES': ('Bearer',),
+}
 
