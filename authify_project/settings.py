@@ -126,3 +126,14 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+
+# Custom User Model Registration
+# By default, Django creates a standard, basic 'User' table in the database when you start.
+# Think of this standard user table like buying a generic, pre-packaged filing cabinet. 
+# But in our Authify project, we wanted to swap out that generic cabinet for a customized one 
+# that allows email logins (our accounts.User model).
+# The AUTH_USER_MODEL setting tells Django: "Hey, do not build the generic user cabinet! 
+# Instead, use the custom 'User' blueprint we designed inside our 'accounts' app."
+AUTH_USER_MODEL = 'accounts.User'
+
